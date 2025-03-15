@@ -1,0 +1,20 @@
+FROM my-jenkins-agents/base
+
+ARG VERSION=1.11.1
+
+USER root
+
+WORKDIR /tmp
+RUN apk add --update --virtual .deps --no-cache --quiet gnupg zip
+RUN wget https://releases.hashicorp.com/terraform/${VERSION}/terraform_${VERSION}_linux_amd64.zip
+RUN wget https://releases.hashicorp.com/terraform/${VERSION}/terraform_${VERSION}_SHA256SUMS
+RUN wget https://releases.hashicorp.com/terraform/${VERSION}/terraform_${VERSION}_SHA256SUMS.sig
+RUN wget -qO- https://www.hashicorp.com/.well-known/pgp-key.txt | gpg --import
+RUN gpg --verify terraform_${VERSION}_SHA256SUMS.sig terraform_${VERSION}_SHA256SUMS
+RUN grep terraform_${VERSION}_linux_amd64.zip terraform_${VERSION}_SHA256SUMS | sha256sum -c
+RUN unzip /tmp/terraform_${VERSION}_linux_amd64.zip -d /tmp
+RUN mv /tmp/terraform /usr/local/bin/terraform
+RUN rm -f /tmp/terraform_${VERSION}_linux_amd64.zip terraform_${VERSION}_SHA256SUMS ${VERSION}/terraform_${VERSION}_SHA256SUMS.sig
+RUN apk del .deps
+
+USER jenkins

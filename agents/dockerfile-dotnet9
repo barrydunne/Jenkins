@@ -1,0 +1,7 @@
+FROM my-jenkins-agents/dotnet8
+
+USER root
+
+RUN apk add --no-cache --quiet dotnet9-sdk
+
+USER jenkins

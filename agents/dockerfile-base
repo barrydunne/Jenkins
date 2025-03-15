@@ -1,0 +1,25 @@
+# Use the official Jenkins JNLP Alpine agent as the base image
+FROM jenkins/jnlp-agent-alpine
+
+USER root
+
+# PowerShell 7.5
+
+WORKDIR /tmp
+RUN apk add --no-cache --quiet ca-certificates less ncurses-terminfo-base krb5-libs libgcc libintl libssl3 libstdc++ tzdata userspace-rcu zlib icu-libs curl
+RUN apk -X https://dl-cdn.alpinelinux.org/alpine/edge/main add --no-cache --quiet lttng-ust openssh-client
+RUN curl -L https://github.com/PowerShell/PowerShell/releases/download/v7.5.0/powershell-7.5.0-linux-musl-x64.tar.gz -o /tmp/powershell.tar.gz
+RUN mkdir -p /opt/microsoft/powershell/7
+RUN tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7
+RUN chmod +x /opt/microsoft/powershell/7/pwsh
+RUN ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
+RUN rm /tmp/powershell.tar.gz
+
+# AWS
+
+WORKDIR /tmp
+RUN apk add --no-cache --quiet aws-cli
+COPY .aws /home/jenkins/.aws
+RUN chown -R jenkins:jenkins /home/jenkins/.aws
+
+USER jenkins

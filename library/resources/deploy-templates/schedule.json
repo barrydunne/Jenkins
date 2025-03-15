@@ -1,0 +1,15 @@
+{
+  "materials": [
+    {
+      "fingerprint": "_FINGERPRINT_",
+      "revision": "_GIT_COMMIT_"
+    }
+  ],
+  "environment_variables": [
+    { "name": "VERSION", "value": "_VERSION_" },
+    { "name": "BUILD_ARTIFACT", "value": "_BUILD_ARTIFACT_" },
+    { "name": "RUN_DISPLAY_URL", "value": "_RUN_DISPLAY_URL_" },
+    { "name": "GIT_BRANCH", "value": "_GIT_BRANCH_" },
+    { "name": "GIT_COMMIT", "value": "_GIT_COMMIT_" }
+  ]
+}

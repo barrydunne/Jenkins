@@ -1,0 +1,256 @@
+{
+  "group": "_DEPLOY_PROJECT_GROUP_",
+  "name": "_DEPLOY_PROJECT_NAME_",
+  "label_template": "${env:VERSION}",
+  "lock_behavior": "unlockWhenFinished",
+  "template": null,
+  "materials": [
+    {
+      "type": "git",
+      "attributes": {
+        "url": "_GIT_URL_",
+        "branch": "_GIT_BRANCH_",
+        "auto_update": false
+      }
+    }
+  ],
+  "environment_variables": [
+    { "name": "VERSION", "value": "DEFAULT_VALUE" },
+    { "name": "BUILD_ARTIFACT", "value": "DEFAULT_VALUE" },
+    { "name": "RUN_DISPLAY_URL", "value": "DEFAULT_VALUE" },
+    { "name": "GIT_BRANCH", "value": "DEFAULT_VALUE" },
+    { "name": "GIT_COMMIT", "value": "DEFAULT_VALUE" },
+    { "name": "TF_VAR_aws_region", "value": "eu-west-1" },
+    { "name": "TF_VAR_aws_endpoint_apigateway", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_autoscaling", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_cognito-idp", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_dynamodb", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_ec2", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_ecs", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_iam", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_lambda", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_logs", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_monitoring", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_rds", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_route53", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_s3", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_scheduler", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_secretsmanager", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_ses", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_sns", "value": "http://host.docker.internal:4566" },
+    { "name": "TF_VAR_aws_endpoint_sqs", "value": "http://host.docker.internal:4566" }
+  ],
+  "stages": [
+    {
+      "name": "Validate",
+      "fetch_materials": false,
+      "clean_working_directory": true,
+      "never_cleanup_artifacts": false,
+      "approval": {
+        "type": "manual",
+        "authorization": {
+          "roles": [],
+          "users": []
+        }
+      },
+      "environment_variables": [],
+      "jobs": [
+        {
+          "name": "Validate",
+          "timeout": 0,
+          "environment_variables": [],
+          "tasks": [
+            {
+              "type": "exec",
+              "attributes": {
+                "command": "bash",
+                "arguments": [ "-c", "if [ \"$BUILD_ARTIFACT\" = \"DEFAULT_VALUE\" ]; then echo \"BUILD_ARTIFACT is not specified. Failing the job.\" >&2; exit 1; fi" ]
+              }
+            },
+            {
+              "type": "exec",
+              "attributes": {
+                "command": "bash",
+                "arguments": [ "-c", "echo \"Branch: $GIT_BRANCH \nCommit: $GIT_COMMIT \nArtifact: $BUILD_ARTIFACT \nBuild Details: $RUN_DISPLAY_URL\"" ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Development",
+      "fetch_materials": true,
+      "clean_working_directory": true,
+      "never_cleanup_artifacts": false,
+      "approval": {
+        "type": "manual",
+        "allow_only_on_success": true,
+        "authorization": {
+          "roles": [],
+          "users": []
+        }
+      },
+      "environment_variables": [
+        { "name": "ENV_ALIAS", "value": "dev" },
+        { "name": "ASPNETCORE_ENVIRONMENT", "value": "Development" },
+        { "name": "TF_VAR_aspnetcore_environment", "value": "Development" },
+        { "name": "TF_VAR_aws_profile", "value": "development" }    
+      ],
+      "jobs": [
+        {
+          "name": "DeployToDevelopment",
+          "resources": ["terraform"],
+          "timeout": 0,
+          "environment_variables": [],
+          "tasks": [
+            {
+              "type": "exec",
+              "attributes": {
+                "run_if": [ "passed" ],
+                "working_directory": "_BUILD_ARTIFACT_",
+                "command": "bash",
+                "arguments": [ "-c", "terraform init _OPTIONS_1_" ]
+              }
+            },
+            {
+              "type": "exec",
+              "attributes": {
+                "run_if": [ "passed" ],
+                "working_directory": "_BUILD_ARTIFACT_",
+                "command": "bash",
+                "arguments": [ "-c", "terraform plan -out=tfplan _OPTIONS_2_" ]
+              }
+            },
+            {
+              "type": "exec",
+              "attributes": {
+                "run_if": [ "passed" ],
+                "working_directory": "_BUILD_ARTIFACT_",
+                "command": "terraform",
+                "arguments": [ "apply", "--auto-approve", "tfplan" ]
+              }
+            }
+          ],
+          "artifacts": []
+        }
+      ]
+    },
+    {
+      "name": "Staging",
+      "fetch_materials": true,
+      "clean_working_directory": true,
+      "never_cleanup_artifacts": false,
+      "approval": {
+        "type": "manual",
+        "allow_only_on_success": true,
+        "authorization": {
+          "roles": [],
+          "users": []
+        }
+      },
+      "environment_variables": [
+        { "name": "ENV_ALIAS", "value": "staging" },
+        { "name": "ASPNETCORE_ENVIRONMENT", "value": "Staging" },
+        { "name": "TF_VAR_aspnetcore_environment", "value": "Staging" },
+        { "name": "TF_VAR_aws_profile", "value": "staging" }    
+      ],
+      "jobs": [
+        {
+          "name": "DeployToStaging",
+          "resources": ["terraform"],
+          "timeout": 0,
+          "environment_variables": [],
+          "tasks": [
+            {
+              "type": "exec",
+              "attributes": {
+                "run_if": [ "passed" ],
+                "working_directory": "_BUILD_ARTIFACT_",
+                "command": "bash",
+                "arguments": [ "-c", "terraform init _OPTIONS_1_" ]
+              }
+            },
+            {
+              "type": "exec",
+              "attributes": {
+                "run_if": [ "passed" ],
+                "working_directory": "_BUILD_ARTIFACT_",
+                "command": "bash",
+                "arguments": [ "-c", "terraform plan -out=tfplan _OPTIONS_2_" ]
+              }
+            },
+            {
+              "type": "exec",
+              "attributes": {
+                "run_if": [ "passed" ],
+                "working_directory": "_BUILD_ARTIFACT_",
+                "command": "terraform",
+                "arguments": [ "apply", "--auto-approve", "tfplan" ]
+              }
+            }
+          ],
+          "artifacts": []
+        }
+      ]
+    },
+    {
+      "name": "Production",
+      "fetch_materials": true,
+      "clean_working_directory": true,
+      "never_cleanup_artifacts": false,
+      "approval": {
+        "type": "manual",
+        "allow_only_on_success": true,
+        "authorization": {
+          "roles": [],
+          "users": []
+        }
+      },
+      "environment_variables": [
+        { "name": "ENV_ALIAS", "value": "prod" },
+        { "name": "ASPNETCORE_ENVIRONMENT", "value": "Production" },
+        { "name": "TF_VAR_aspnetcore_environment", "value": "Production" },
+        { "name": "TF_VAR_aws_profile", "value": "production" }    
+      ],
+      "jobs": [
+        {
+          "name": "DeployToProduction",
+          "resources": ["terraform"],
+          "timeout": 0,
+          "environment_variables": [],
+          "tasks": [
+            {
+              "type": "exec",
+              "attributes": {
+                "run_if": [ "passed" ],
+                "working_directory": "_BUILD_ARTIFACT_",
+                "command": "bash",
+                "arguments": [ "-c", "terraform init _OPTIONS_1_" ]
+              }
+            },
+            {
+              "type": "exec",
+              "attributes": {
+                "run_if": [ "passed" ],
+                "working_directory": "_BUILD_ARTIFACT_",
+                "command": "bash",
+                "arguments": [ "-c", "terraform plan -out=tfplan _OPTIONS_2_" ]
+              }
+            },
+            {
+              "type": "exec",
+              "attributes": {
+                "run_if": [ "passed" ],
+                "working_directory": "_BUILD_ARTIFACT_",
+                "command": "terraform",
+                "arguments": [ "apply", "--auto-approve", "tfplan" ]
+              }
+            }
+          ],
+          "artifacts": []
+        }
+      ]
+    }
+  ]
+}

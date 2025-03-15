@@ -1,0 +1,24 @@
+FROM my-jenkins-agents/base
+
+USER root
+
+# Docker
+
+RUN apk add --no-cache --quiet docker-cli shadow sudo zip
+RUN groupadd docker
+RUN usermod -aG docker jenkins
+RUN echo "%docker ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+# Decorate the original entrypoint to change the group of the docker socket
+
+RUN echo "#!/bin/sh" > /entrypoint-wrapper.sh
+RUN echo "if [ -S /var/run/docker.sock ]; then" >> /entrypoint-wrapper.sh
+RUN echo "    echo Giving docker group ownership of /var/run/docker.sock" >> /entrypoint-wrapper.sh
+RUN echo "    sudo chown root:docker /var/run/docker.sock" >> /entrypoint-wrapper.sh
+RUN echo "fi" >> /entrypoint-wrapper.sh
+RUN echo "exec /usr/local/bin/jenkins-agent" >> /entrypoint-wrapper.sh
+RUN chmod +x /entrypoint-wrapper.sh
+
+USER jenkins
+
+ENTRYPOINT ["/entrypoint-wrapper.sh"]
