@@ -7,6 +7,7 @@ function Get-SeqData {
 
     for ($attempt = 1; $attempt -le 12; $attempt++) {
         try {
+            Write-Host "Getting $dataType list from $url"
             $data = Invoke-RestMethod -Uri $url
             if ($data.Count -ge 0) {
                 Write-Host "Found $($data.Count) $dataType"
@@ -14,8 +15,7 @@ function Get-SeqData {
             }
         }
         catch {
-            Write-Host "Failed on attempt $attempt"
-            Write-Host $_.Exception.Message
+            Write-Host "Seq not ready on attempt $attempt"
             if ($attempt -lt 12) {
                 Start-Sleep -Seconds 5
             }
@@ -34,7 +34,7 @@ function New-SeqData {
 
     $known = $existing | Where-Object { $_.Title -eq $title }
     if ($null -ne $known) {
-        Write-Output "'$title' already exists in $dataType"
+        Write-Host "'$title' already exists in $dataType"
 
         $updateUrl = "$seqHost/$($known.Links.Self)"
         try {
@@ -43,21 +43,21 @@ function New-SeqData {
             $obj.Id = $known.Id
             $obj.Links = $known.Links
             $json = $obj | ConvertTo-Json
-            Write-Output $json
+            Write-Host $json
 
-            Write-Output "Updating $dataType entity for '$title'"
+            Write-Host "Updating $dataType entity for '$title'"
             $response = Invoke-RestMethod -Uri $updateUrl -Method Put -Headers $headers -Body $json
             return $response.Id
         }
         catch {
-            Write-Output "Failed to create $dataType entity"
-            Write-Output $_.Exception.Message
+            Write-Host "Failed to create $dataType entity"
+            Write-Host $_.Exception.Message
         }
         return
     }
 
-    Write-Output "Creating $dataType entity for '$title'"
-    Write-Output $json
+    Write-Host "Creating $dataType entity for '$title'"
+    Write-Host $json
     $url = "$seqHost/api/$dataType/"
     $headers = @{ "Content-Type" = "application/json" }
     try {
@@ -65,8 +65,8 @@ function New-SeqData {
         return $response.Id
     }
     catch {
-        Write-Output "Failed to create $dataType entity"
-        Write-Output $_.Exception.Message
+        Write-Host "Failed to create $dataType entity"
+        Write-Host $_.Exception.Message
     }
 }
 
@@ -79,18 +79,13 @@ function New-SeqRetentionPeriod {
 
     $existing = Get-SeqData -dataType 'retentionpolicies'
     foreach ($policy in $existing) {
-$json = $policy | ConvertTo-Json
-Write-Output 'JSON:'
-Write-Output $json
-Write-Output 'Policy:'
-Write-Output $policy
         $id = $policy.Id
         $deleteUrl = "$url$id"
-        Write-Output "Deleting existing retention policy at $deleteUrl"
+        Write-Host "Deleting existing retention policy $id"
         Invoke-RestMethod -Uri $deleteUrl -Method Delete
     }
 
-    Write-Output "Setting retention period to $time"
+    Write-Host "Setting retention period to $time"
     $json = '{"RetentionTime":"' + $time + '","RemovedSignalExpression":null,"Id":null,"Links":{"Create":"api/retentionpolicies/"}}'
     $headers = @{ "Content-Type" = "application/json" }
     try {
@@ -98,11 +93,10 @@ Write-Output $policy
         return $response.Id
     }
     catch {
-        Write-Output "Failed to set retention period"
-        Write-Output $_.Exception.Message
+        Write-Host "Failed to set retention period"
+        Write-Host $_.Exception.Message
     }
 }
-
 
 $containerId = docker ps -q -f name=_CONTAINER_NAME_
 if (-not $containerId) {
@@ -121,7 +115,7 @@ if (-not $containerId) {
     
     $seqHost = "http://${hostIp}:_SEQ_PORT_"
     Write-Output "Configuring Seq at $seqHost"
-    
+
     $signals = Get-SeqData -dataType 'signals'
     if ($null -ne $signals) {
 
