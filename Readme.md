@@ -59,6 +59,49 @@ If using GoCD, add the API key
     * Value `<your GoCD token>`
 
 
+## GitHub
+
+
+If using GitHub, add the server
+
+1. Open `Dashboard > Manage Jenkins > System` 
+1. Find `GitHub Servers`
+1. `Add GitHub Server > GitHub Server`
+    * Name: `github`
+1. `Credentials > Add > Jenkins`
+    * Kind: `Username with password`
+    * Username: `jenkins`
+    * Password: `<your token>` _Generate at https://github.com/settings/personal-access-tokens_
+        * Commit statuses: `Read and write`
+        * Contents: `Read-only`
+        * Metadata: `Read-only`
+        * Pull requests: `Read-only`
+    * Id: `github-jenkins`
+1. Check `Manage hooks`
+
+**NOTE** When creating the github personal access token it should have minimum repository permissions:
+* Commit statuses: `Read and write`
+* Contents: `Read-only`
+* Metadata: `Read-only`
+* Pull requests: `Read-only`
+
+### Webbook
+
+Use ngrok to tunnel to Jenkins with either of these commands
+```
+ngrok http --host-header="localhost:7080" 7080
+ngrok http --host-header="localhost:7080" --url=your-domain.ngrok-free.app 7080
+```
+
+In GitHub add a webhook for a repository by
+
+1. Go to the repository
+1. `Settings > Webhooks > Add Webhook`
+1. Payload URL: `https://<your-ngrok-domain>/github-webhook/`
+1. Content type: `application/json`
+1. Add Webhook
+
+
 ## Gitea
 
 See https://github.com/barrydunne/gitea
@@ -110,10 +153,12 @@ See https://github.com/barrydunne/aws.playground
 1. OK
 1. Display Name: `Aws.Playground.Environment`
 1. Branch Sources: `Add source > Gitea`
-    * Server: `<select server added above>`
-    * Credentials: `<select credentials added above>`
-    * Owner: `Barry`
-    * Repository: `Aws.Playground`
+    | Gitea | GitHub |
+    |-------|--------|
+    | Server `<select server added above>` | Credentials `<select credentials added above>` |
+    | Credentials `<select credentials added above>` | Repository HTTPS URL `https://github.com/barrydunne/aws.playground.git` |
+    | Owner: `Barry` | |
+    | Repository: `Aws.Playground` | |
 1. Build Configuration > Mode `by Jenkinsfile` > Script Path `.build/Jenkinsfile.environment`
 1. Discard old items (_set desired values_)
 1. Save
@@ -124,13 +169,6 @@ See https://github.com/barrydunne/aws.playground
     * http://localhost:7080/job/Aws.Playground.Environment/job/main/multi-pipeline-graph/
 
 
-**NOTE** When creating the github personal access token it should have minimum permissions:
-
-* Read access to Metadata
-* Read access to Contents
-* Read access to Pull requests
-
-Ref: https://github.com/settings/personal-access-tokens
 
 
 
