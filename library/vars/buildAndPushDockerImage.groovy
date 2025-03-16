@@ -5,7 +5,7 @@ def call(Map config = [:]) {
     def dockerFile = config.dockerFile ?: env.DOCKERFILE
     def workDir = config.workDir ?: env.WORK_DIR
 
-    pwsh """
+    pwsh("""
     \$tag = "${imageName}:${buildId}"
     \$repositoryName = "${imageName}"
 
@@ -25,5 +25,5 @@ def call(Map config = [:]) {
     Write-Output "Pushing \$repositoryName/\$tag"
     docker push \$repositoryName/\$tag
     if (\$LASTEXITCODE -ne 0) { exit 1 }
-    """
+    """)
 }

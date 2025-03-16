@@ -1,4 +1,5 @@
 import groovy.json.JsonOutput
+import java.net.URLEncoder
 
 def call(Map config = [:]) {
 
@@ -26,7 +27,7 @@ def call(Map config = [:]) {
         'Authorization': "Bearer ${env.GOCD_API_TOKEN}"
     ]
 
-    echo "Notify deployment server about new ${project} version ${version} of ${commit} commit in ${branch} branch from ${repo} with link ${link} using template ${template} with options ${options}"
+    echo("Notify deployment server about new ${project} version ${version} of ${commit} commit in ${branch} branch from ${repo} with link ${link} using template ${template} with options ${options}")
 
     def jsonPipeline = loadTemplate(template, project, group, artifact, version, repo, commit, branch, link, options)
     def jsonSchedule = loadTemplate('schedule', project, group, artifact, version, repo, commit, branch, link, options)
@@ -55,7 +56,7 @@ private def loadTemplate(String template, String project, String group, String a
     
     def jsonTemplate = libraryResource("deploy-templates/${template}.json")
     replacements.each { placeholder, value ->
-        echo "Replacing '${placeholder}' with '${value}'"
+        echo("Replacing '${placeholder}' with '${value}'")
         jsonTemplate = jsonTemplate.replaceAll(placeholder, java.util.regex.Matcher.quoteReplacement(value))
     }
     return jsonTemplate
@@ -65,15 +66,15 @@ private def createGroup(String pipelineGroup, String baseUrl, Map headers) {
 
     if (!getPipelineGroup(pipelineGroup, baseUrl, headers)) {
         newPipelineGroup(pipelineGroup, baseUrl, headers)
-        echo "Created pipeline group: ${pipelineGroup}"
+        echo("Created pipeline group: ${pipelineGroup}")
     } else {
-        echo "Pipeline group already exists: ${pipelineGroup}"
+        echo("Pipeline group already exists: ${pipelineGroup}")
     }
 }
 
 private def getPipelineGroup(String pipelineGroup, String baseUrl, Map headers) {
 
-    echo "Looking for pipeline group: ${pipelineGroup}"
+    echo("Looking for pipeline group: ${pipelineGroup}")
     def url = "${baseUrl}/admin/pipeline_groups"
     def response = httpRequest(
         url: url,
@@ -87,7 +88,7 @@ private def getPipelineGroup(String pipelineGroup, String baseUrl, Map headers) 
 
 private def newPipelineGroup(String pipelineGroup, String baseUrl, Map headers) {
 
-    echo "Creating pipeline group: ${pipelineGroup}"
+    echo("Creating pipeline group: ${pipelineGroup}")
     def body = JsonOutput.toJson([ "name": pipelineGroup ])
     def url = "${baseUrl}/admin/pipeline_groups"
     def response = httpRequest(
@@ -97,7 +98,7 @@ private def newPipelineGroup(String pipelineGroup, String baseUrl, Map headers) 
         requestBody: body
     )
     def json = readJSON(text: response.content)
-    echo "Created pipeline group: ${json?._links?.self?.href}"
+    echo("Created pipeline group: ${json?._links?.self?.href}")
     return json
 }
 
@@ -116,13 +117,14 @@ private def createPipeline(String pipelineJson, String pipelineGroup, String pip
     }
 
     newPipeline(pipelineJson, pipelineName, baseUrl, newHeaders, method)
-    echo "Created pipeline: ${pipelineName}"
+    echo("Created pipeline: ${pipelineName}")
 }
 
 private def getPipelineETag(String pipelineName, String baseUrl, Map headers) {
     
-    echo "Looking for pipeline: ${pipelineName}"
-    def url = "${baseUrl}/admin/pipelines/${pipelineName}"
+    echo("Looking for pipeline: ${pipelineName}")
+    def encodedPipelineName = URLEncoder.encode(pipelineName, 'UTF-8')
+    def url = "${baseUrl}/admin/pipelines/${encodedPipelineName}"
     def response = httpRequest(
         url: url,
         customHeaders: headers.collect { k, v -> [name: k, value: v] },
@@ -130,12 +132,12 @@ private def getPipelineETag(String pipelineName, String baseUrl, Map headers) {
         validResponseCodes: '200,404'
     )
     if (response.status == 404) {
-        echo 'Pipeline not found'
+        echo('Pipeline not found')
         return null
     }
-    echo "Found existing pipeline: ${pipelineName}"
+    echo("Found existing pipeline: ${pipelineName}")
     def etag = response.headers['ETag'][0]
-    echo "Existing pipeline ETag: ${etag}"
+    echo("Existing pipeline ETag: ${etag}")
     return etag
 }
 
@@ -143,10 +145,11 @@ private def newPipeline(String pipelineJson, String pipelineName, String baseUrl
 
     def url = "${baseUrl}/admin/pipelines"
     if (method == 'PUT') {
-        echo "Updating pipeline: ${pipelineName}"
-        url = "${url}/${pipelineName}"
+        echo("Updating pipeline: ${pipelineName}")
+        def encodedPipelineName = URLEncoder.encode(pipelineName, 'UTF-8')
+        url = "${url}/${encodedPipelineName}"
     } else {
-        echo "Creating pipeline: ${pipelineName}"
+        echo("Creating pipeline: ${pipelineName}")
     }
 
     def newHeaders = new HashMap(headers)
@@ -160,28 +163,29 @@ private def newPipeline(String pipelineJson, String pipelineName, String baseUrl
     )
     def json = readJSON(text: response.content)
     if ((response.status == 400) || (response.status == 422)) {
-        echo 'Pipeline rejected'
-        echo "Pipeline:\n${pipelineJson}"
-        echo "Response:\n${response.content}"
+        echo('Pipeline rejected')
+        echo("Pipeline:\n${pipelineJson}")
+        echo("Response:\n${response.content}")
         error("Pipeline rejected: ${json.message}")
     } else {
-        echo "Created pipeline: ${json?._links?.self?.href}"
+        echo("Created pipeline: ${json?._links?.self?.href}")
     }    
     return json
 }
 
 private def createSchedule(String scheduleJson, String pipelineName, String repo, String branch, String baseUrl, Map headers) {
 
-    echo "Creating pipeline scheldule: ${pipelineName}"
+    echo("Creating pipeline scheldule: ${pipelineName}")
 
     def fingerprint = getMaterialFingerprint(repo, branch, baseUrl, headers) ?: 'none'
     scheduleJson = scheduleJson.replaceAll('_FINGERPRINT_', fingerprint)
 
-    echo "-------------------------"
-    echo "${scheduleJson}"
-    echo "-------------------------"
+    echo("-------------------------")
+    echo("${scheduleJson}")
+    echo("-------------------------")
 
-    def url = "${baseUrl}/pipelines/${pipelineName}/schedule"
+    def encodedPipelineName = URLEncoder.encode(pipelineName, 'UTF-8')
+    def url = "${baseUrl}/pipelines/${encodedPipelineName}/schedule"
     def response = httpRequest(
         url: url,
         customHeaders: headers.collect { k, v -> [name: k, value: v] },
@@ -191,16 +195,16 @@ private def createSchedule(String scheduleJson, String pipelineName, String repo
     )
     def json = readJSON(text: response.content)    
     if (response.status == 422) {
-        echo "Schedule pipeline rejected: ${response.content}"
+        echo("Schedule pipeline rejected: ${response.content}")
         error("Pipeline schedule rejected: ${json.message}")
     } else {
-        echo "Created pipeline schedule: ${json?.message}"
+        echo("Created pipeline schedule: ${json?.message}")
     }
     return json
 }
 
 private def getMaterialFingerprint(String gitURL, String branch, String baseUrl, Map headers) {
-    echo "Looking for fingerprint: ${gitURL}"
+    echo("Looking for fingerprint: ${gitURL}")
     def url = "${baseUrl}/config/materials"
     def response = httpRequest(
         url: url,
