@@ -14,6 +14,6 @@
     </workDirSettings>
     <webSocket>false</webSocket>
   </launcher>
-  <label>any net net9 aws pwsh pwsh7</label>
+  <label>any net net8 net9 aws pwsh pwsh7</label>
   <nodeProperties/>
 </slave>
