@@ -6,6 +6,7 @@ def call(Map config = [:]) {
     def project = config.project ?: env.DEPLOY_PROJECT_NAME                 // Aws.Playground.Api
     def group = config.group ?: env.DEPLOY_PROJECT_GROUP ?: 'Default'       // Api
     def template = config.template ?: env.DEPLOY_TEMPLATE                   // ecs-service
+    def workingDir = config.workingDir ?: '.tf'                             // .tf/api_ecs_cluster_service
     def artifact = config.artifact ?: env.BUILD_ARTIFACT                    // aws-playground-api:2025.0313.2008.0012
     def version = config.version ?: env.BUILD_ID ?: env.BUILD_DISPLAY_NAME  // 2025.0313.2008.0012
     def repo = config.repo ?: env.GIT_URL                                   // http://host.docker.internal:3000/Barry/aws.playground.git
@@ -13,6 +14,7 @@ def call(Map config = [:]) {
     def branch = config.branch ?: env.GIT_BRANCH                            // main
     def link = config.link ?: env.RUN_DISPLAY_URL                           // http://localhost:7080/job/Aws.Playground.Api/job/main/12/display/redirect
     def options = config.options instanceof List ? config.options : (config.options ? [ config.options ] : [])
+    def downloads = config.downloads instanceof List ? config.downloads : (config.downloads ? [ config.downloads ] : []) // [ 's3://releases/Aws.Playground.Lambda/Aws.Playground.Lambda_2025.0314.1242.001.zip' ]
     def gocdServer = config.gocdServer ?: 'http://host.docker.internal:8153'
 
     // Check if the required environment variables are set
@@ -29,25 +31,27 @@ def call(Map config = [:]) {
 
     echo("Notify deployment server about new ${project} version ${version} of ${commit} commit in ${branch} branch from ${repo} with link ${link} using template ${template} with options ${options}")
 
-    def jsonPipeline = loadTemplate(template, project, group, artifact, version, repo, commit, branch, link, options)
-    def jsonSchedule = loadTemplate('schedule', project, group, artifact, version, repo, commit, branch, link, options)
+    def jsonPipeline = loadTemplate(template, project, group, workingDir, artifact, version, repo, commit, branch, link, downloads, options)
+    def jsonSchedule = loadTemplate('schedule', project, group, workingDir, artifact, version, repo, commit, branch, link, downloads, options)
 
     createGroup(group, baseUrl, headers)
     createPipeline(jsonPipeline, group, project, baseUrl, headers)
     createSchedule(jsonSchedule, project, repo, branch, baseUrl, headers)
 }
 
-private def loadTemplate(String template, String project, String group, String artifact, String version, String repo, String commit, String branch, String link, List options) {
+private def loadTemplate(String template, String project, String group, String workingDir, String artifact, String version, String repo, String commit, String branch, String link, List downloads, List options) {
 
     def replacements = [
         '_DEPLOY_PROJECT_NAME_': project ?: 'none',
         '_DEPLOY_PROJECT_GROUP_': group ?: 'none',
+        '_WORKING_DIR_': workingDir ?: 'none',
         '_BUILD_ARTIFACT_': artifact ?: 'none',
         '_VERSION_': version ?: 'none',
         '_GIT_URL_': repo ?: 'none',
         '_GIT_COMMIT_': commit ?: 'none',
         '_GIT_BRANCH_': branch ?: 'none',
-        '_RUN_DISPLAY_URL_': link ?: 'none'
+        '_RUN_DISPLAY_URL_': link ?: 'none',
+        '_DOWNLOADS_': downloads ? downloads.collect { "\\\"${it}\\\"" }.join(' ') : "\\\"\\\""
     ]
 
     options.eachWithIndex { opt, idx ->

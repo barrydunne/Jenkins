@@ -108,7 +108,16 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_BUILD_ARTIFACT_",
+                "working_directory": "_WORKING_DIR_",
+                "command": "bash",
+                "arguments": [ "-c", "for download in _DOWNLOADS_; do if [[ \"$download\" == s3://* ]]; then filename=$(basename \"$download\"); echo \"Downloading $download to $(pwd)/$filename\"; aws s3 cp \"$download\" \"$filename\" --profile $TF_VAR_aws_profile; fi; done" ]
+              }              
+            },
+            {
+              "type": "exec",
+              "attributes": {
+                "run_if": [ "passed" ],
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
                 "arguments": [ "-c", "terraform init _OPTIONS_1_" ]
               }
@@ -117,7 +126,7 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_BUILD_ARTIFACT_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
                 "arguments": [ "-c", "terraform plan -out=tfplan _OPTIONS_2_" ]
               }
@@ -126,7 +135,7 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_BUILD_ARTIFACT_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "terraform",
                 "arguments": [ "apply", "--auto-approve", "tfplan" ]
               }
@@ -158,7 +167,7 @@
       "jobs": [
         {
           "name": "DeployToStaging",
-          "resources": ["terraform"],
+          "resources": ["terraform", "aws"],
           "timeout": 0,
           "environment_variables": [],
           "tasks": [
@@ -166,7 +175,16 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_BUILD_ARTIFACT_",
+                "working_directory": "_WORKING_DIR_",
+                "command": "bash",
+                "arguments": [ "-c", "for download in _DOWNLOADS_; do if [[ \"$download\" == s3://* ]]; then filename=$(basename \"$download\"); aws cp \"$download\" \"$filename\" --profile $TF_VAR_aws_profile; fi; done" ]
+              }              
+            },
+            {
+              "type": "exec",
+              "attributes": {
+                "run_if": [ "passed" ],
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
                 "arguments": [ "-c", "terraform init _OPTIONS_1_" ]
               }
@@ -175,7 +193,7 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_BUILD_ARTIFACT_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
                 "arguments": [ "-c", "terraform plan -out=tfplan _OPTIONS_2_" ]
               }
@@ -184,7 +202,7 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_BUILD_ARTIFACT_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "terraform",
                 "arguments": [ "apply", "--auto-approve", "tfplan" ]
               }
@@ -224,7 +242,16 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_BUILD_ARTIFACT_",
+                "working_directory": "_WORKING_DIR_",
+                "command": "bash",
+                "arguments": [ "-c", "for download in _DOWNLOADS_; do if [[ \"$download\" == s3://* ]]; then filename=$(basename \"$download\"); aws cp \"$download\" \"$filename\" --profile $TF_VAR_aws_profile; fi; done" ]
+              }              
+            },
+            {
+              "type": "exec",
+              "attributes": {
+                "run_if": [ "passed" ],
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
                 "arguments": [ "-c", "terraform init _OPTIONS_1_" ]
               }
@@ -233,7 +260,7 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_BUILD_ARTIFACT_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
                 "arguments": [ "-c", "terraform plan -out=tfplan _OPTIONS_2_" ]
               }
@@ -242,7 +269,7 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_BUILD_ARTIFACT_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "terraform",
                 "arguments": [ "apply", "--auto-approve", "tfplan" ]
               }

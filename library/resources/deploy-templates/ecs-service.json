@@ -108,7 +108,7 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_OPTIONS_1_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
                 "arguments": [ "-c", "echo \"Processing artifact: $BUILD_ARTIFACT\" && REPOSITORY=$(echo $BUILD_ARTIFACT | cut -d'/' -f1) && IMAGE_WITH_TAG=$(echo $BUILD_ARTIFACT | cut -d'/' -f2) && IMAGE=$(echo $IMAGE_WITH_TAG | cut -d':' -f1) && TAG=$(echo $IMAGE_WITH_TAG | cut -d':' -f2) && echo \"Repository: $REPOSITORY\" && echo \"Image: $IMAGE\" && echo \"Tag: $TAG\" && echo \"Environment: $ENV_ALIAS\" && IMAGE_MANIFEST=$(aws ecr batch-get-image --profile $TF_VAR_aws_profile --repository-name $IMAGE --image-ids imageTag=$TAG --query 'images[].imageManifest' --output text) && if [ -z \"$IMAGE_MANIFEST\" ]; then echo \"Failed to retrieve image manifest for tag $TAG in repository $IMAGE.\" >&2 && exit 1; fi && IMAGE_DIGEST=$(aws ecr batch-get-image --profile $TF_VAR_aws_profile --repository-name $IMAGE --image-ids imageTag=$TAG --query 'images[].imageId.imageDigest' --output text) && ENV_IMAGE_DIGEST=$(aws ecr batch-get-image --profile $TF_VAR_aws_profile --repository-name $IMAGE --image-ids imageTag=$ENV_ALIAS --query 'images[].imageId.imageDigest' --output text) && if [ \"$IMAGE_DIGEST\" = \"$ENV_IMAGE_DIGEST\" ]; then echo \"Image $IMAGE:$TAG is already deployed to $ENV_ALIAS.\"; else echo \"Tagging image $IMAGE:$TAG with $ENV_ALIAS\" && aws ecr put-image --profile $TF_VAR_aws_profile --repository-name $IMAGE --image-tag $ENV_ALIAS --image-manifest \"$IMAGE_MANIFEST\" --no-cli-pager && if [ $? -ne 0 ]; then echo \"Failed to tag image $IMAGE:$TAG with $ENV_ALIAS\" >&2 && exit 1; fi; fi" ]
               }
@@ -117,25 +117,25 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_OPTIONS_1_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
-                "arguments": [ "-c", "terraform init _OPTIONS_2_" ]
+                "arguments": [ "-c", "terraform init _OPTIONS_1_" ]
               }
             },
             {
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_OPTIONS_1_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
-                "arguments": [ "-c", "terraform plan -out=tfplan _OPTIONS_3_" ]
+                "arguments": [ "-c", "terraform plan -out=tfplan _OPTIONS_2_" ]
               }
             },
             {
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_OPTIONS_1_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "terraform",
                 "arguments": [ "apply", "--auto-approve", "tfplan" ]
               }
@@ -144,9 +144,9 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_OPTIONS_1_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
-                "arguments": [ "-c", "echo \"Updating ECS cluster _OPTIONS_4_ service _OPTIONS_5_\" && aws ecs update-service --profile $TF_VAR_aws_profile --cluster _OPTIONS_4_ --service _OPTIONS_5_ --force-new-deployment --deployment-configuration \"maximumPercent=200,minimumHealthyPercent=50\" --no-cli-pager" ]
+                "arguments": [ "-c", "echo \"Updating ECS cluster _OPTIONS_3_ service _OPTIONS_4_\" && aws ecs update-service --profile $TF_VAR_aws_profile --cluster _OPTIONS_3_ --service _OPTIONS_4_ --force-new-deployment --deployment-configuration \"maximumPercent=200,minimumHealthyPercent=50\" --no-cli-pager" ]
               }
             }
           ],
@@ -184,7 +184,7 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_OPTIONS_1_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
                 "arguments": [ "-c", "echo \"Processing artifact: $BUILD_ARTIFACT\" && REPOSITORY=$(echo $BUILD_ARTIFACT | cut -d'/' -f1) && IMAGE_WITH_TAG=$(echo $BUILD_ARTIFACT | cut -d'/' -f2) && IMAGE=$(echo $IMAGE_WITH_TAG | cut -d':' -f1) && TAG=$(echo $IMAGE_WITH_TAG | cut -d':' -f2) && echo \"Repository: $REPOSITORY\" && echo \"Image: $IMAGE\" && echo \"Tag: $TAG\" && echo \"Environment: $ENV_ALIAS\" && IMAGE_MANIFEST=$(aws ecr batch-get-image --profile $TF_VAR_aws_profile --repository-name $IMAGE --image-ids imageTag=$TAG --query 'images[].imageManifest' --output text) && if [ -z \"$IMAGE_MANIFEST\" ]; then echo \"Failed to retrieve image manifest for tag $TAG in repository $IMAGE.\" >&2 && exit 1; fi && IMAGE_DIGEST=$(aws ecr batch-get-image --profile $TF_VAR_aws_profile --repository-name $IMAGE --image-ids imageTag=$TAG --query 'images[].imageId.imageDigest' --output text) && ENV_IMAGE_DIGEST=$(aws ecr batch-get-image --profile $TF_VAR_aws_profile --repository-name $IMAGE --image-ids imageTag=$ENV_ALIAS --query 'images[].imageId.imageDigest' --output text) && if [ \"$IMAGE_DIGEST\" = \"$ENV_IMAGE_DIGEST\" ]; then echo \"Image $IMAGE:$TAG is already deployed to $ENV_ALIAS.\"; else echo \"Tagging image $IMAGE:$TAG with $ENV_ALIAS\" && aws ecr put-image --profile $TF_VAR_aws_profile --repository-name $IMAGE --image-tag $ENV_ALIAS --image-manifest \"$IMAGE_MANIFEST\" --no-cli-pager && if [ $? -ne 0 ]; then echo \"Failed to tag image $IMAGE:$TAG with $ENV_ALIAS\" >&2 && exit 1; fi; fi" ]
               }
@@ -193,25 +193,25 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_OPTIONS_1_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
-                "arguments": [ "-c", "terraform init _OPTIONS_2_" ]
+                "arguments": [ "-c", "terraform init _OPTIONS_1_" ]
               }
             },
             {
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_OPTIONS_1_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
-                "arguments": [ "-c", "terraform plan -out=tfplan _OPTIONS_3_" ]
+                "arguments": [ "-c", "terraform plan -out=tfplan _OPTIONS_2_" ]
               }
             },
             {
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_OPTIONS_1_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "terraform",
                 "arguments": [ "apply", "--auto-approve", "tfplan" ]
               }
@@ -220,9 +220,9 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_OPTIONS_1_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
-                "arguments": [ "-c", "echo \"Updating ECS cluster _OPTIONS_4_ service _OPTIONS_5_\" && aws ecs update-service --profile $TF_VAR_aws_profile --cluster _OPTIONS_4_ --service _OPTIONS_5_ --force-new-deployment --deployment-configuration \"maximumPercent=200,minimumHealthyPercent=50\" --no-cli-pager" ]
+                "arguments": [ "-c", "echo \"Updating ECS cluster _OPTIONS_3_ service _OPTIONS_4_\" && aws ecs update-service --profile $TF_VAR_aws_profile --cluster _OPTIONS_3_ --service _OPTIONS_4_ --force-new-deployment --deployment-configuration \"maximumPercent=200,minimumHealthyPercent=50\" --no-cli-pager" ]
               }
             }
           ],
@@ -260,7 +260,7 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_OPTIONS_1_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
                 "arguments": [ "-c", "echo \"Processing artifact: $BUILD_ARTIFACT\" && REPOSITORY=$(echo $BUILD_ARTIFACT | cut -d'/' -f1) && IMAGE_WITH_TAG=$(echo $BUILD_ARTIFACT | cut -d'/' -f2) && IMAGE=$(echo $IMAGE_WITH_TAG | cut -d':' -f1) && TAG=$(echo $IMAGE_WITH_TAG | cut -d':' -f2) && echo \"Repository: $REPOSITORY\" && echo \"Image: $IMAGE\" && echo \"Tag: $TAG\" && echo \"Environment: $ENV_ALIAS\" && IMAGE_MANIFEST=$(aws ecr batch-get-image --profile $TF_VAR_aws_profile --repository-name $IMAGE --image-ids imageTag=$TAG --query 'images[].imageManifest' --output text) && if [ -z \"$IMAGE_MANIFEST\" ]; then echo \"Failed to retrieve image manifest for tag $TAG in repository $IMAGE.\" >&2 && exit 1; fi && IMAGE_DIGEST=$(aws ecr batch-get-image --profile $TF_VAR_aws_profile --repository-name $IMAGE --image-ids imageTag=$TAG --query 'images[].imageId.imageDigest' --output text) && ENV_IMAGE_DIGEST=$(aws ecr batch-get-image --profile $TF_VAR_aws_profile --repository-name $IMAGE --image-ids imageTag=$ENV_ALIAS --query 'images[].imageId.imageDigest' --output text) && if [ \"$IMAGE_DIGEST\" = \"$ENV_IMAGE_DIGEST\" ]; then echo \"Image $IMAGE:$TAG is already deployed to $ENV_ALIAS.\"; else echo \"Tagging image $IMAGE:$TAG with $ENV_ALIAS\" && aws ecr put-image --profile $TF_VAR_aws_profile --repository-name $IMAGE --image-tag $ENV_ALIAS --image-manifest \"$IMAGE_MANIFEST\" --no-cli-pager && if [ $? -ne 0 ]; then echo \"Failed to tag image $IMAGE:$TAG with $ENV_ALIAS\" >&2 && exit 1; fi; fi" ]
               }
@@ -269,25 +269,25 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_OPTIONS_1_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
-                "arguments": [ "-c", "terraform init _OPTIONS_2_" ]
+                "arguments": [ "-c", "terraform init _OPTIONS_1_" ]
               }
             },
             {
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_OPTIONS_1_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
-                "arguments": [ "-c", "terraform plan -out=tfplan _OPTIONS_3_" ]
+                "arguments": [ "-c", "terraform plan -out=tfplan _OPTIONS_2_" ]
               }
             },
             {
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_OPTIONS_1_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "terraform",
                 "arguments": [ "apply", "--auto-approve", "tfplan" ]
               }
@@ -296,9 +296,9 @@
               "type": "exec",
               "attributes": {
                 "run_if": [ "passed" ],
-                "working_directory": "_OPTIONS_1_",
+                "working_directory": "_WORKING_DIR_",
                 "command": "bash",
-                "arguments": [ "-c", "echo \"Updating ECS cluster _OPTIONS_4_ service _OPTIONS_5_\" && aws ecs update-service --profile $TF_VAR_aws_profile --cluster _OPTIONS_4_ --service _OPTIONS_5_ --force-new-deployment --deployment-configuration \"maximumPercent=200,minimumHealthyPercent=50\" --no-cli-pager" ]
+                "arguments": [ "-c", "echo \"Updating ECS cluster _OPTIONS_3_ service _OPTIONS_4_\" && aws ecs update-service --profile $TF_VAR_aws_profile --cluster _OPTIONS_3_ --service _OPTIONS_4_ --force-new-deployment --deployment-configuration \"maximumPercent=200,minimumHealthyPercent=50\" --no-cli-pager" ]
               }
             }
           ],
